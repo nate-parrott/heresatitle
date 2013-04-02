@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset='utf-8'/>
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <title>Here's a Title</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>
+	$(document).ready(function() {
+		$(document.body).keydown(function(e) {
+			if (e.which==13) {
+				showNewIdea();
+			}
+		})
+		$('#next').bind('touchend', function(e) {
+			showNewIdea();
+			e.preventDefault();
+		})
+		replenishQueue();
+	})
+	ideaQueue = [];
+	showIdeaAfterLoading = false;
+	function replenishQueue() {
+		if (ideaQueue.length < 3) {
+			$.ajax('/ideas', {
+				success: function(response) {
+					var ideas = JSON.parse(response);
+					ideas.forEach(function(idea) {
+						ideaQueue.push(idea);
+					})
+					if (showIdeaAfterLoading) {
+						showIdeaAfterLoading = false;
+						showNewIdea();
+					}
+				}
+			})
+		}
+	}
+	function showNewIdea() {
+		if (ideaQueue.length) {
+			var idea = ideaQueue[0];
+			ideaQueue.splice(0, 1);
+			$('#idea span').text(idea);
+			$('#verb').text(pick1("write make build paint sing choreograph sculpt".split(' ')))
+		} else {
+			showIdeaAfterLoading = true;
+		}
+		replenishQueue();
+	}
+	function pick1(list) {
+		return list[Math.floor(Math.random()*list.length)];
+	}
+	</script>
+  </head>
+  <body>
+	  <div id='main'>
+		  <div id='suggestion'>
+			  <h3>Why not <span id='verb'>write</span> something called</h3>
+			  <h1 id='idea'>“<span><%= idea %></span>”</h1>
+			  <span id='next'>or <a href='javascript:showNewIdea()'>try something else?</a> (hit enter)</span>
+		  </div>
+		  <div id='whatbutton' onclick="$('#what').show()">
+			  What?
+		  </div>
+	  </div>
+	  <div id='what' style='display: none'>
+		  <div>
+			  <div class='close' onclick="$('#what').hide()">×</div>
+			  <h1>What is this?</h1>
+			  <p>This web page generates <strong>random titles</strong> by picking words out of the <a href='http://en.wikipedia.org/wiki/Brown_Corpus'>Brown Corpus</a> of English-language writing.</p>
+			  <p>If you're offended by something this generates, I'm sorry.</p>
+		  </div>
+	  </div>
+  </body>
+</html>
